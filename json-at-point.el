@@ -58,6 +58,34 @@ e.g. `json-ts-mode'), falling back to sexp-based navigation otherwise."
                 (cons start (point))))
           (error nil)))))
 
+(defun json-ppa--document-bounds ()
+  "Return (BEG . END) of the outermost JSON object or array in the buffer, or nil.
+Uses tree-sitter when available, otherwise scans forward from `point-min'."
+  (or (when (and (fboundp 'treesit-buffer-root-node)
+                 (treesit-parser-list nil 'json))
+        (let* ((root (treesit-buffer-root-node 'json))
+               (node (treesit-node-child root 0 t)))
+          (when (and node (member (treesit-node-type node) '("object" "array")))
+            (cons (treesit-node-start node) (treesit-node-end node)))))
+      (save-excursion
+        (goto-char (point-min))
+        (condition-case nil
+            (progn
+              (skip-chars-forward "^[{")
+              (when (looking-at "[\\[{]")
+                (let ((start (point)))
+                  (forward-sexp)
+                  (cons start (point)))))
+          (error nil)))))
+
+(defun json-ppa--collection-bounds-dwim ()
+  "Return (BEG . END) of a JSON object or array for use at point.
+Tries the innermost collection enclosing point first; if point is outside
+any collection (e.g. after the closing brace) falls back to the outermost
+collection in the buffer."
+  (or (json-ppa--collection-bounds)
+      (json-ppa--document-bounds)))
+
 (defun json-ppa--read-collection-at (beg end)
   "Parse the JSON array or object between BEG and END.
 Uses a sentinel for null so that nil unambiguously means empty collection."
@@ -223,8 +251,8 @@ Handles, in order:
 All nested collections are expanded with indentation derived from the
 column of the opening bracket."
   (interactive)
-  (let ((bounds (json-ppa--collection-bounds)))
-    (unless bounds (user-error "No JSON array or object found at point"))
+  (let ((bounds (json-ppa--collection-bounds-dwim)))
+    (unless bounds (user-error "No JSON array or object found in buffer"))
     (let* ((beg (car bounds)) (end (cdr bounds))
            (base-col   (save-excursion (goto-char beg) (current-column)))
            (collection (json-ppa--read-collection-at beg end)))
@@ -235,8 +263,8 @@ column of the opening bracket."
   "Format the JSON collection at point: one element/member per line, minified.
 Each element (array) or member value (object) is collapsed to a single line."
   (interactive)
-  (let ((bounds (json-ppa--collection-bounds)))
-    (unless bounds (user-error "No JSON array or object found at point"))
+  (let ((bounds (json-ppa--collection-bounds-dwim)))
+    (unless bounds (user-error "No JSON array or object found in buffer"))
     (let* ((beg (car bounds)) (end (cdr bounds))
            (base-col   (save-excursion (goto-char beg) (current-column)))
            (collection (json-ppa--read-collection-at beg end)))
@@ -252,8 +280,8 @@ With a numeric prefix argument, use it as DEPTH.  Otherwise prompt."
    (list (if current-prefix-arg
              (prefix-numeric-value current-prefix-arg)
            (read-number "Format to depth: " 2))))
-  (let ((bounds (json-ppa--collection-bounds)))
-    (unless bounds (user-error "No JSON array or object found at point"))
+  (let ((bounds (json-ppa--collection-bounds-dwim)))
+    (unless bounds (user-error "No JSON array or object found in buffer"))
     (let* ((beg (car bounds)) (end (cdr bounds))
            (base-col   (save-excursion (goto-char beg) (current-column)))
            (collection (json-ppa--read-collection-at beg end)))
@@ -274,8 +302,8 @@ Fixes common formatting issues before parsing:
 After cleanup the result is parsed and fully pretty-printed.
 On parse failure the cleaned text is written to *Messages* for inspection."
   (interactive)
-  (let ((bounds (json-ppa--collection-bounds)))
-    (unless bounds (user-error "No JSON collection found at point"))
+  (let ((bounds (json-ppa--collection-bounds-dwim)))
+    (unless bounds (user-error "No JSON collection found in buffer"))
     (let* ((beg     (car bounds))
            (end     (cdr bounds))
            (base-col (save-excursion (goto-char beg) (current-column)))

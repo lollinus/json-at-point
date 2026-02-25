@@ -209,6 +209,48 @@ expanded, but each element's member values are minified."
      (json-compact-members))
    :type 'user-error))
 
+;;; DWIM — point outside collection falls back to document-level
+
+(ert-deftest json-pretty-print-members-dwim-after-last-brace ()
+  "When point is after the closing brace, format the whole document."
+  (should (equal
+           (with-json-buffer "{\"a\":1,\"b\":2}"
+             (goto-char (point-max))
+             (json-pretty-print-members))
+           "{\n  \"a\": 1,\n  \"b\": 2\n}")))
+
+(ert-deftest json-compact-members-dwim-after-last-brace ()
+  "When point is after the closing bracket, format the whole document."
+  (should (equal
+           (with-json-buffer "[{\"a\":1},{\"b\":2}]"
+             (goto-char (point-max))
+             (json-compact-members))
+           "[\n  {\"a\":1},\n  {\"b\":2}\n]")))
+
+(ert-deftest json-format-to-depth-dwim-after-last-brace ()
+  "When point is after the closing brace, format the whole document."
+  (should (equal
+           (with-json-buffer "[{\"a\":1},{\"b\":2}]"
+             (goto-char (point-max))
+             (json-format-to-depth 2))
+           "[\n  {\n    \"a\": 1\n  },\n  {\n    \"b\": 2\n  }\n]")))
+
+(ert-deftest json-cleanup-at-point-dwim-after-last-brace ()
+  "When point is after the closing brace, clean up the whole document."
+  (should (equal
+           (with-json-buffer "{\"a\"    :    \"b\"}"
+             (goto-char (point-max))
+             (json-cleanup-at-point))
+           "{\n  \"a\": \"b\"\n}")))
+
+(ert-deftest json-pretty-print-members-dwim-before-first-brace ()
+  "When point is before any collection, format the whole document."
+  (should (equal
+           (with-json-buffer "  {\"a\":1}"
+             (goto-char (point-min))
+             (json-pretty-print-members))
+           "  {\n    \"a\": 1\n  }")))
+
 ;;; json-cleanup-at-point
 
 (ert-deftest json-cleanup-extra-spaces-around-colon ()

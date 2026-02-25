@@ -1,0 +1,178 @@
+#+title: json-pretty-print-array
+#+author: qxz2st8
+
+An Emacs package for context-aware reformatting of the JSON array or object at
+point — no region selection required.
+
+* Rationale
+
+Emacs ships with ~json-pretty-print~ and ~json-pretty-print-ordered~, but both
+require you to first select a region.  When you are working in a buffer that
+contains JSON embedded inside other content — a log file, a test fixture, a
+source-code string literal, a clipboard paste — selecting exactly the right
+region is tedious and error-prone.
+
+This package instead works /at point/: it walks up the syntax tree to find the
+innermost JSON array or object, reformats it in place, and leaves everything
+outside the collection untouched.  Indentation is derived automatically from
+the column of the opening bracket, so nested collections look correct wherever
+they appear on the line.
+
+Beyond simple pretty-printing, the package offers two additional capabilities
+that are absent from the built-in tools:
+
+- *Depth-limited formatting* (~json-format-to-depth~) expands collections only
+  to a requested nesting level and minifies everything deeper.  This is useful
+  for large documents where you want to inspect the top-level structure without
+  expanding every leaf.
+
+- *JSON-alike cleanup* (~json-cleanup-at-point~) repairs common defects found
+  in real-world data before parsing: single-quoted strings, unquoted keys,
+  double-outer-quoted values (~""TEXT""~), spaced-out identifiers, mid-token
+  line breaks, and stray control characters.  This makes it possible to reformat
+  content that ~json-pretty-print~ would simply reject.
+
+* Installation
+
+** Via MELPA
+
+Add MELPA to your package archives if you have not already:
+
+#+begin_src emacs-lisp
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(package-initialize)
+#+end_src
+
+Then install with:
+
+#+begin_example
+M-x package-install RET json-pretty-print-array RET
+#+end_example
+
+** Via use-package + MELPA
+
+#+begin_src emacs-lisp
+(use-package json-pretty-print-array
+  :ensure t)
+#+end_src
+
+** Manual
+
+Clone the repository and add it to your load path:
+
+#+begin_src emacs-lisp
+(add-to-list 'load-path "/path/to/json-pretty-print-array")
+(require 'json-pretty-print-array)
+#+end_src
+
+* Usage
+
+All commands operate on the innermost JSON array or object surrounding point.
+No region selection is needed.
+
+** ~json-pretty-print-members~
+
+Fully expand every nested collection, with indentation relative to the column
+of the opening bracket.
+
+#+begin_example
+Before:  [{"key":"A","value":{"enabled":true}},{"key":"B","value":{"enabled":false}}]
+
+After:
+[
+  {
+    "key": "A",
+    "value": {
+      "enabled": true
+    }
+  },
+  {
+    "key": "B",
+    "value": {
+      "enabled": false
+    }
+  }
+]
+#+end_example
+
+** ~json-compact-members~
+
+Keep one element or member per line, but minify each element's content to a
+single line.  Useful for wide arrays of objects where you want to scan rows
+without scrolling through many lines each.
+
+#+begin_example
+Before:  [{"key":"A","value":{"enabled":true}},{"key":"B","value":{"enabled":false}}]
+
+After:
+[
+  {"key":"A","value":{"enabled":true}},
+  {"key":"B","value":{"enabled":false}}
+]
+#+end_example
+
+** ~json-format-to-depth~
+
+Expand collections to a given depth; anything deeper is minified to a single
+line.  With a numeric prefix argument (~C-u 2 M-x json-format-to-depth~) the
+argument is used directly; otherwise you are prompted.
+
+#+begin_example
+Depth 2 on the same array:
+
+[
+  {
+    "key": "A",
+    "value": {"enabled":true}
+  },
+  {
+    "key": "B",
+    "value": {"enabled":false}
+  }
+]
+#+end_example
+
+** ~json-cleanup-at-point~
+
+Repair a JSON-alike document at point before pretty-printing it.  Handles:
+
+- Control characters (U+0000–U+001F) stripped from string content
+- Mid-token line breaks joined without a space
+- Soft-wrap newlines between tokens collapsed to a space
+- Spaced-out uppercase identifiers collapsed (~A L W A Y S~ → ~ALWAYS~)
+- Single-quoted strings: ~'TEXT'~ → ~"TEXT"~
+- Unquoted identifier keys: ~{ key:~ → ~{ "key":~
+- Double-outer-quoted strings: ~""TEXT""~ → ~"TEXT"~
+- Embedded JSON wrapped in double-outer-quotes: ~"key":""{"x":1}""~ → ~"key":{"x":1}~
+- Extra whitespace before/after colons and colon at end of line
+
+#+begin_example
+Before:  {speech    :    {"name"    :    ""SPEECH"",  "enabled"    :    "1"}}
+
+After:
+{
+  "speech": {
+    "name": "SPEECH",
+    "enabled": "1"
+  }
+}
+#+end_example
+
+* Key bindings
+
+The package does not bind any keys by default.  A suggested configuration:
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'json-pretty-print-array
+  (define-key json-mode-map (kbd "C-c C-f") #'json-pretty-print-members)
+  (define-key json-mode-map (kbd "C-c C-c") #'json-compact-members)
+  (define-key json-mode-map (kbd "C-c C-d") #'json-format-to-depth)
+  (define-key json-mode-map (kbd "C-c C-u") #'json-cleanup-at-point))
+#+end_src
+
+* License
+
+This package is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 3, or (at your option) any later version.

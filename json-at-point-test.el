@@ -1,16 +1,16 @@
-;;; json-pretty-print-array-test.el --- ERT tests for json-pretty-print-array  -*- lexical-binding: t; -*-
+;;; json-at-point-test.el --- ERT tests for json-at-point  -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 ;; Run with:
 ;;   emacs --batch -Q \
-;;     -L ~/.emacs.d/site-lisp/json-pretty-print-array \
-;;     -l json-pretty-print-array-test.el \
+;;     -L ~/.emacs.d/site-lisp/json-at-point \
+;;     -l json-at-point-test.el \
 ;;     -f ert-run-tests-batch-and-exit
 
 ;;; Code:
 
 (require 'ert)
-(require 'json-pretty-print-array)
+(require 'json-at-point)
 
 ;;; Helper macro
 
@@ -281,5 +281,5 @@ expanded, but each element's member values are minified."
              (json-cleanup-at-point))
            "{\n  \"agent\": \"MGU Navigation Controller\"\n}")))
 
-(provide 'json-pretty-print-array-test)
-;;; json-pretty-print-array-test.el ends here
+(provide 'json-at-point-test)
+;;; json-at-point-test.el ends here

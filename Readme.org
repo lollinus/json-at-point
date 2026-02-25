@@ -1,4 +1,4 @@
-#+title: json-pretty-print-array
+#+title: json-at-point
 #+author: qxz2st8
 
 An Emacs package for context-aware reformatting of the JSON array or object at
@@ -47,13 +47,13 @@ Add MELPA to your package archives if you have not already:
 Then install with:
 
 #+begin_example
-M-x package-install RET json-pretty-print-array RET
+M-x package-install RET json-at-point RET
 #+end_example
 
 ** Via use-package + MELPA
 
 #+begin_src emacs-lisp
-(use-package json-pretty-print-array
+(use-package json-at-point
   :ensure t
   :bind (:map json-mode-map
          ("C-c C-f" . json-pretty-print-members)
@@ -65,7 +65,7 @@ M-x package-install RET json-pretty-print-array RET
 ** Via leaf + MELPA
 
 #+begin_src emacs-lisp
-(leaf json-pretty-print-array
+(leaf json-at-point
   :ensure t
   :bind (:json-mode-map
          ("C-c C-f" . json-pretty-print-members)
@@ -79,8 +79,8 @@ M-x package-install RET json-pretty-print-array RET
 Clone the repository and add it to your load path:
 
 #+begin_src emacs-lisp
-(add-to-list 'load-path "/path/to/json-pretty-print-array")
-(require 'json-pretty-print-array)
+(add-to-list 'load-path "/path/to/json-at-point")
+(require 'json-at-point)
 #+end_src
 
 * Usage
@@ -183,7 +183,7 @@ snippets in the Installation section include suggested bindings for
 ~json-mode-map~.  For a manual setup:
 
 #+begin_src emacs-lisp
-(with-eval-after-load 'json-pretty-print-array
+(with-eval-after-load 'json-at-point
   (define-key json-mode-map (kbd "C-c C-f") #'json-pretty-print-members)
   (define-key json-mode-map (kbd "C-c C-c") #'json-compact-members)
   (define-key json-mode-map (kbd "C-c C-d") #'json-format-to-depth)

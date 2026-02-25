@@ -1,4 +1,4 @@
-;;; json-pretty-print-array.el --- Pretty print members of a JSON collection  -*- lexical-binding: t; -*-
+;;; json-at-point.el --- Reformat the JSON array or object at point  -*- lexical-binding: t; -*-
 
 ;; Author: qxz2st8
 ;; Version: 0.5.0
@@ -279,5 +279,5 @@ On parse failure the cleaned text is written to *Messages* for inspection."
                            (error-message-string err))))))
       (json-ppa--apply beg end base-col collection most-positive-fixnum))))
 
-(provide 'json-pretty-print-array)
-;;; json-pretty-print-array.el ends here
+(provide 'json-at-point)
+;;; json-at-point.el ends here

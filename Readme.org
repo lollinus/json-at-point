@@ -54,7 +54,24 @@ M-x package-install RET json-pretty-print-array RET
 
 #+begin_src emacs-lisp
 (use-package json-pretty-print-array
-  :ensure t)
+  :ensure t
+  :bind (:map json-mode-map
+         ("C-c C-f" . json-pretty-print-members)
+         ("C-c C-c" . json-compact-members)
+         ("C-c C-d" . json-format-to-depth)
+         ("C-c C-u" . json-cleanup-at-point)))
+#+end_src
+
+** Via leaf + MELPA
+
+#+begin_src emacs-lisp
+(leaf json-pretty-print-array
+  :ensure t
+  :bind (:json-mode-map
+         ("C-c C-f" . json-pretty-print-members)
+         ("C-c C-c" . json-compact-members)
+         ("C-c C-d" . json-format-to-depth)
+         ("C-c C-u" . json-cleanup-at-point)))
 #+end_src
 
 ** Manual
@@ -161,7 +178,9 @@ After:
 
 * Key bindings
 
-The package does not bind any keys by default.  A suggested configuration:
+The package does not bind any keys by default.  The ~use-package~ and ~leaf~
+snippets in the Installation section include suggested bindings for
+~json-mode-map~.  For a manual setup:
 
 #+begin_src emacs-lisp
 (with-eval-after-load 'json-pretty-print-array

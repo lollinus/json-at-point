@@ -30,19 +30,33 @@
 
 ;;; Internal helpers — bounds & parsing
 
+(defun json-ppa--collection-bounds-treesit ()
+  "Return (BEG . END) using tree-sitter, or nil if unavailable or no JSON parser."
+  (when (and (fboundp 'treesit-node-at)
+             (treesit-parser-list nil 'json))
+    (let ((node (treesit-node-at (point) 'json)))
+      (while (and node
+                  (not (member (treesit-node-type node) '("object" "array"))))
+        (setq node (treesit-node-parent node)))
+      (when node
+        (cons (treesit-node-start node) (treesit-node-end node))))))
+
 (defun json-ppa--collection-bounds ()
-  "Return (BEG . END) of the innermost JSON array or object around point, or nil."
-  (save-excursion
-    (condition-case nil
-        (progn
-          (unless (looking-at "[\\[{]")
-            (up-list -1 t t)
-            (while (not (looking-at "[\\[{]"))
-              (up-list -1 t t)))
-          (let ((start (point)))
-            (forward-sexp)
-            (cons start (point))))
-      (error nil))))
+  "Return (BEG . END) of the innermost JSON array or object around point, or nil.
+Uses tree-sitter when a JSON parser is active in the buffer (Emacs 29+,
+e.g. `json-ts-mode'), falling back to sexp-based navigation otherwise."
+  (or (json-ppa--collection-bounds-treesit)
+      (save-excursion
+        (condition-case nil
+            (progn
+              (unless (looking-at "[\\[{]")
+                (up-list -1 t t)
+                (while (not (looking-at "[\\[{]"))
+                  (up-list -1 t t)))
+              (let ((start (point)))
+                (forward-sexp)
+                (cons start (point))))
+          (error nil)))))
 
 (defun json-ppa--read-collection-at (beg end)
   "Parse the JSON array or object between BEG and END.

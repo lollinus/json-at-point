@@ -34,27 +34,14 @@ that are absent from the built-in tools:
 
 * Installation
 
-** Via MELPA
+This package is not available on MELPA or GNU ELPA.  Install it directly
+from GitHub using Emacs's built-in ~:vc~ support (Emacs 29+).
 
-Add MELPA to your package archives if you have not already:
-
-#+begin_src emacs-lisp
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-(package-initialize)
-#+end_src
-
-Then install with:
-
-#+begin_example
-M-x package-install RET json-at-point RET
-#+end_example
-
-** Via use-package + MELPA
+** Via use-package
 
 #+begin_src emacs-lisp
 (use-package json-at-point
-  :ensure t
+  :vc (:url "https://github.com/lollinus/json-at-point" :rev :newest)
   :bind (:map json-mode-map
          ("C-c C-f" . json-pretty-print-members)
          ("C-c C-c" . json-compact-members)
@@ -62,11 +49,11 @@ M-x package-install RET json-at-point RET
          ("C-c C-u" . json-cleanup-at-point)))
 #+end_src
 
-** Via leaf + MELPA
+** Via leaf
 
 #+begin_src emacs-lisp
 (leaf json-at-point
-  :ensure t
+  :vc (:url "https://github.com/lollinus/json-at-point" :rev :newest)
   :bind (:json-mode-map
          ("C-c C-f" . json-pretty-print-members)
          ("C-c C-c" . json-compact-members)
@@ -78,8 +65,12 @@ M-x package-install RET json-at-point RET
 
 Clone the repository and add it to your load path:
 
+#+begin_src shell
+git clone https://github.com/lollinus/json-at-point.git ~/.emacs.d/json-at-point
+#+end_src
+
 #+begin_src emacs-lisp
-(add-to-list 'load-path "/path/to/json-at-point")
+(add-to-list 'load-path "~/.emacs.d/json-at-point")
 (require 'json-at-point)
 #+end_src
 
